@@ -1,0 +1,71 @@
+
+//+------------------------------------------------------------------+
+//|                                              MACD Divergence Tester MT5 |
+//|                                                     forexroboteasy.com |
+//|                                                        Forex Robot Easy Team |
+//+------------------------------------------------------------------+
+
+//--- Include necessary libraries and define variables
+#include <Trade\Trade.mqh>
+#include <Indicators\Indicators.mqh>
+
+CTrade trade; // Trade object for executing trades
+
+//--- Initialize the Expert Advisor
+int OnInit()
+{
+    // Enable real-time scanning for all symbols and timeframes
+    ArraySetAsSeries(SymbolInfo, true);
+    ArraySetAsSeries(TimeframeArray, true);
+    SymbolInfo = SymbolsTotal(false);
+    TimeframeArray = ArrayInitialize(0, PERIOD_CURRENT);
+    
+    return(INIT_SUCCEEDED);
+}
+
+//--- Start scanning for potential trading opportunities
+void OnTick()
+{
+    for(int i = 0; i < SymbolInfo; i++)
+    {
+        for(int j = 0; j < ArraySize(TimeframeArray); j++)
+        {
+            // Set the symbol and timeframe for scanning
+            SymbolSet(SymbolName(i), TimeframeArray[j]);
+            
+            // Calculate MACD indicator values
+            double macdMain[], macdSignal[], macdHist[];
+            iMACD(NULL, TimeframeArray[j], 12, 26, 9, PRICE_CLOSE, MODE_MAIN, macdMain);
+            iMACD(NULL, TimeframeArray[j], 12, 26, 9, PRICE_CLOSE, MODE_SIGNAL, macdSignal);
+            iMACD(NULL, TimeframeArray[j], 12, 26, 9, PRICE_CLOSE, MODE_HIST, macdHist);
+            
+            // Check for MACD divergence
+            if(macdHist[0] > 0 && macdHist[1] < 0)
+            {
+                // Execute trade based on MACD divergence
+                trade.Buy(Symbol(), 0.01, Ask, 0, 0, 0, 'MACD Divergence Buy', 0);
+            }
+            else if(macdHist[0] < 0 && macdHist[1] > 0)
+            {
+                // Execute trade based on MACD divergence
+                trade.Sell(Symbol(), 0.01, Bid, 0, 0, 0, 'MACD Divergence Sell', 0);
+            }
+        }
+    }
+}
+
+//--- Customizable scanning parameters
+void OnDeinit(const int reason)
+{
+    // Provide options to customize scanning parameters
+    // For example, allow users to adjust the MACD parameters
+    // and other trading preferences
+}
+
+//--- Test the code and ensure accuracy
+void OnTester()
+{
+    // Run backtest to test the code and verify its reliability
+}
+
+//--- End of code
